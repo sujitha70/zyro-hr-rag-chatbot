@@ -3,8 +3,9 @@ langchain
 langchain-core
 langchain-community
 langchain-groq
-langchain-google-genai
 langchain-huggingface
-sentence-transformers
+langchain-text-splitters
 faiss-cpu
 pypdf
+sentence-transformers
+langsmith

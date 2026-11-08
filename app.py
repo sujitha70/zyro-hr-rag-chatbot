@@ -80,33 +80,45 @@ def build_chain():
         [
             (
                 "system",
-                "You are an HR policy assistant for Zyro Dynamics.\n"
+                "You are a friendly HR assistant chatbot for Zyro Dynamics. "
+                "You answer employee questions using the company's HR policy documents.\n"
+                "The documents cover: Company Profile, Employee Handbook, Leave Policy, "
+                "Work From Home Policy, Code of Conduct, Performance Review Policy, "
+                "Compensation and Benefits, IT and Data Security, Prevention of Sexual "
+                "Harassment (POSH), Onboarding and Separation, and Travel and Expense.\n\n"
                 "Rules:\n"
-                "1. Answer ONLY using facts explicitly stated in the context below. "
-                "Never use outside knowledge or guesses.\n"
-                "2. Tables in the context may appear flattened into one line. "
-                "Read them carefully before deciding the answer is missing.\n"
+                "1. Use ONLY facts stated in the context below. Never use outside "
+                "knowledge or guesses.\n"
+                "2. Tables in the context may appear flattened into one line. Read them "
+                "carefully before deciding the answer is missing.\n"
                 "3. If a question asks about a policy rule (eligibility, allowance, "
-                "entitlement, limit, process) but uses 'my' or 'I', you do not know "
-                "the person's grade, so state the rule for each grade or band listed "
-                "in the context. Do NOT refuse just because the grade is unknown.\n"
-                "4. If a question asks for one individual's own records or account "
-                "data (for example 'my ESOP vesting schedule', 'my leave balance', "
-                f"'my payslip'), that data is not in the policy documents, so reply exactly: \"{REFUSAL}\"\n"
-                "5. Also reply exactly with that sentence if the context has no "
-                "relevant information, or the question is about other companies, "
-                "Zyro Dynamics financials, products, job applications, or anything "
-                "outside Zyro Dynamics HR policies.\n"
-                "6. Otherwise answer in 1 to 3 plain sentences with the exact "
-                "numbers, dates and conditions from the policy.\n"
-                "7. Plain text only. No markdown, no bullets, no bold.\n\n"
+                "entitlement, limit, process) but uses 'my' or 'I', you do not know the "
+                "person's grade, so explain the rule for each grade or band in the "
+                "context. Do NOT refuse just because the grade is unknown.\n"
+                "4. If a question asks for one individual's own records or account data "
+                "(for example 'my ESOP vesting schedule', 'my leave balance', 'my "
+                f"payslip'), that data is not in the policy documents, so reply exactly: \"{REFUSAL}\"\n"
+                "5. For greetings, thanks, or 'what can you do', reply warmly in 1 to 2 "
+                "sentences and list a few topics the person can ask about. Do not refuse.\n"
+                "6. For broad questions such as 'tell me about HR policies', give a short "
+                "overview as a bullet list with one bullet per policy area, each with one "
+                "or two key facts. Do not dump contact details or minor trivia. End by "
+                "inviting a specific question.\n"
+                "7. If the context has no relevant information, or the question is about "
+                "other companies, Zyro Dynamics financials, products, job applications, "
+                f"or anything outside Zyro Dynamics HR policies, reply exactly: \"{REFUSAL}\"\n"
+                "8. Format like a helpful chatbot: a short paragraph for simple "
+                "questions, and a bullet list (lines starting with '- ') when there are "
+                "several items, steps, grades or conditions. Bold the key numbers "
+                "sparingly. Always include the exact numbers, dates and conditions. "
+                "Do not mention 'the context' or document codes.\n\n"
                 "Context:\n{context}",
             ),
             ("human", "{question}"),
         ]
     )
 
-    llm = ChatGroq(model=MODEL_NAME, temperature=0)
+    llm = ChatGroq(model=MODEL_NAME, temperature=0.2)
     llm_chain = prompt | llm | StrOutputParser()
     return retriever, llm_chain
 
@@ -120,8 +132,15 @@ def format_docs(docs):
 
 
 def clean(text):
-    text = re.sub(r"[*#`]", "", text)
-    return re.sub(r"\s+", " ", text).strip()
+    # Keep markdown (bullets, bold); only tidy extra blank lines
+    return re.sub(r"\n{3,}", "\n\n", text).strip()
+
+
+SMALLTALK = re.compile(
+    r"^\s*(hi|hello|hey|hii|good (morning|afternoon|evening)|thanks|thank you|"
+    r"who are you|what can you do|help)\b",
+    re.IGNORECASE,
+)
 
 
 def ask(question):
@@ -131,9 +150,9 @@ def ask(question):
     if not answer:
         answer = REFUSAL
 
-    # Citations only for in-scope answers, de-duplicated
+    # Citations only for in-scope, non-smalltalk answers, de-duplicated
     sources = []
-    if "outside the scope" not in answer:
+    if "outside the scope" not in answer and not SMALLTALK.match(question):
         seen = set()
         for d in docs:
             name = Path(d.metadata.get("source", "?")).name
@@ -174,7 +193,7 @@ build_chain()
 # Replay history
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
-        st.write(msg["content"])
+        st.markdown(msg["content"])
         if msg["role"] == "assistant":
             show_sources(msg.get("sources", []))
 
@@ -182,7 +201,7 @@ for msg in st.session_state.messages:
 if question := st.chat_input("Ask an HR policy question..."):
     st.session_state.messages.append({"role": "user", "content": question})
     with st.chat_message("user"):
-        st.write(question)
+        st.markdown(question)
 
     with st.chat_message("assistant"):
         with st.spinner("Searching policies..."):
@@ -190,7 +209,7 @@ if question := st.chat_input("Ask an HR policy question..."):
                 answer, sources = ask(question)
             except Exception as e:
                 answer, sources = f"Sorry, something went wrong: {str(e)[:200]}", []
-        st.write(answer)
+        st.markdown(answer)
         show_sources(sources)
 
     st.session_state.messages.append(

@@ -177,7 +177,7 @@ vectorstore = load_vectorstore()
 retriever = vectorstore.as_retriever(search_type="mmr", search_kwargs={"k": 6, "fetch_k": 20})
 
 # Initialize Groq LLM
-llm = ChatGroq(model="llama3-8b-8192", temperature=0)
+llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0)
 
 SYSTEM_PROMPT = """You are an HR policy assistant for Zyro Dynamics.
 Rules:

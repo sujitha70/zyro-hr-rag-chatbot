@@ -19,13 +19,10 @@ st.set_page_config(
 # ---------------- CUSTOM AESTHETIC CSS ----------------
 st.markdown("""
 <style>
-    /* Google Font */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     html, body, [class*="css"] {
         font-family: 'Inter', sans-serif;
     }
-
-    /* Hero Header Card */
     .hero-card {
         background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4f46e5 100%);
         padding: 2rem 2.2rem;
@@ -58,8 +55,6 @@ st.markdown("""
         margin: 0;
         line-height: 1.5;
     }
-
-    /* Source Citation Pill Badges */
     .citation-pill {
         display: inline-block;
         background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
@@ -71,8 +66,6 @@ st.markdown("""
         margin: 0.25rem 0.35rem 0.25rem 0;
         border: 1px solid #c7d2fe;
     }
-
-    /* Policy Topic Tag in Sidebar */
     .policy-tag {
         display: inline-block;
         background: rgba(99, 102, 241, 0.12);
@@ -83,13 +76,6 @@ st.markdown("""
         font-weight: 500;
         margin: 3px 4px 3px 0;
         border: 1px solid rgba(99, 102, 241, 0.25);
-    }
-
-    /* Chat Message Styling */
-    [data-testid="stChatMessage"] {
-        border-radius: 14px;
-        padding: 0.8rem 1rem;
-        margin-bottom: 0.6rem;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -161,7 +147,7 @@ with st.sidebar:
         st.session_state.messages = []
         st.rerun()
 
-# ---------------- VECTOR STORE LOADER ----------------
+# ---------------- VECTOR STORE & RETRIEVER LOADER ----------------
 @st.cache_resource(show_spinner="Indexing Zyro Dynamics HR Policy PDFs...")
 def load_vectorstore():
     embeddings = HuggingFaceEmbeddings(model_name="BAAI/bge-small-en-v1.5")
@@ -186,8 +172,11 @@ def load_vectorstore():
         st.error("⚠️ HR Policy PDFs or ZIP archive not found in repository!")
         st.stop()
 
+# Initialize Vector Store and Retriever
 vectorstore = load_vectorstore()
 retriever = vectorstore.as_retriever(search_type="mmr", search_kwargs={"k": 6, "fetch_k": 20})
+
+# Initialize Groq LLM
 llm = ChatGroq(model="llama3-8b-8192", temperature=0)
 
 SYSTEM_PROMPT = """You are an HR policy assistant for Zyro Dynamics.

@@ -5,7 +5,7 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_community.document_loaders import PyPDFDirectoryLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_groq import ChatGroq
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 
 # ---------------- PAGE CONFIG ----------------
@@ -81,8 +81,11 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ---------------- API KEYS & TRACING ----------------
-if "GROQ_API_KEY" in st.secrets:
+if "GEMINI_API_KEY" in st.secrets:
+    os.environ["GOOGLE_API_KEY"] = st.secrets["GEMINI_API_KEY"]
+elif "GROQ_API_KEY" in st.secrets:
     os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
+
 if "LANGCHAIN_API_KEY" in st.secrets:
     os.environ["LANGCHAIN_API_KEY"] = st.secrets["LANGCHAIN_API_KEY"]
     os.environ["LANGCHAIN_TRACING_V2"] = "true"
@@ -172,12 +175,11 @@ def load_vectorstore():
         st.error("⚠️ HR Policy PDFs or ZIP archive not found in repository!")
         st.stop()
 
-# Initialize Vector Store and Retriever globally (Outside sidebar)
 vectorstore = load_vectorstore()
 retriever = vectorstore.as_retriever(search_type="mmr", search_kwargs={"k": 6, "fetch_k": 20})
 
-# Initialize Groq LLM (Using 100% stable model)
-llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0)
+# Initialize Gemini Flash (100% stable, fast, and free API)
+llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0)
 
 SYSTEM_PROMPT = """You are an HR policy assistant for Zyro Dynamics.
 Rules:

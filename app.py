@@ -179,7 +179,7 @@ def load_vectorstore():
 vectorstore = load_vectorstore()
 retriever = vectorstore.as_retriever(search_type="mmr", search_kwargs={"k": 6, "fetch_k": 20})
 
-# Initialize Gemini 2.5 Flash Model (Stable & Correct Model ID)
+# Initialize Gemini Flash Model
 llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0)
 
 SYSTEM_PROMPT = """You are an HR policy assistant for Zyro Dynamics.

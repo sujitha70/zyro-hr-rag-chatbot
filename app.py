@@ -5,7 +5,7 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_community.document_loaders import PyPDFDirectoryLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
 
 # ---------------- PAGE CONFIG ----------------
@@ -81,11 +81,8 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ---------------- API KEYS & TRACING ----------------
-if "GEMINI_API_KEY" in st.secrets:
-    os.environ["GOOGLE_API_KEY"] = st.secrets["GEMINI_API_KEY"]
-elif "GROQ_API_KEY" in st.secrets:
+if "GROQ_API_KEY" in st.secrets:
     os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
-
 if "LANGCHAIN_API_KEY" in st.secrets:
     os.environ["LANGCHAIN_API_KEY"] = st.secrets["LANGCHAIN_API_KEY"]
     os.environ["LANGCHAIN_TRACING_V2"] = "true"
@@ -179,8 +176,8 @@ def load_vectorstore():
 vectorstore = load_vectorstore()
 retriever = vectorstore.as_retriever(search_type="mmr", search_kwargs={"k": 6, "fetch_k": 20})
 
-# Initialize Gemini Flash Model
-llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0)
+# Initialize Groq LLM (100% Stable & Production-ready)
+llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0)
 
 SYSTEM_PROMPT = """You are an HR policy assistant for Zyro Dynamics.
 Rules:

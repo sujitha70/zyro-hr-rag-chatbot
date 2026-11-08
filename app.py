@@ -179,8 +179,8 @@ def load_vectorstore():
 vectorstore = load_vectorstore()
 retriever = vectorstore.as_retriever(search_type="mmr", search_kwargs={"k": 6, "fetch_k": 20})
 
-# Initialize Gemini Flash Model
-llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0)
+# Initialize Gemini 2.5 Flash Model (Stable & Correct Model ID)
+llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0)
 
 SYSTEM_PROMPT = """You are an HR policy assistant for Zyro Dynamics.
 Rules:
@@ -251,6 +251,6 @@ if active_query:
                         sources.append(cite)
                 if sources:
                     pills_html = "".join([f'<span class="citation-pill">📄 {s}</span>' for s in sources])
-                    st.markdown(f"<div style='margin-top: 8px;'>{pills_html}</div>", unsafe_link := True)
+                    st.markdown(f"<div style='margin-top: 8px;'>{pills_html}</div>", unsafe_allow_html=True)
 
     st.session_state.messages.append({"role": "assistant", "content": answer, "sources": sources})

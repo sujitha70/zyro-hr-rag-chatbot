@@ -15,6 +15,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 # PDFs sit in the repo root, next to this file
 PDF_DIR = Path(__file__).parent
 EMBED_MODEL = "BAAI/bge-small-en-v1.5"
+SHOW_CITATIONS = False  # set to True to show the "Source Citations" expander
 REFUSAL = (
     "I cannot answer this question as it falls outside the scope "
     "of Zyro Dynamics' HR policy documents."
@@ -164,7 +165,7 @@ def ask(question):
 
 
 def show_sources(sources):
-    if sources:
+    if SHOW_CITATIONS and sources:
         with st.expander("Source Citations"):
             for s in sources:
                 st.write(f"- {s['document']} (page {s['page']})")

@@ -147,7 +147,7 @@ with st.sidebar:
         st.session_state.messages = []
         st.rerun()
 
-# ---------------- VECTOR STORE & RETRIEVER LOADER (OUTSIDE SIDEBAR) ----------------
+# ---------------- VECTOR STORE & RETRIEVER LOADER ----------------
 @st.cache_resource(show_spinner="Indexing Zyro Dynamics HR Policy PDFs...")
 def load_vectorstore():
     embeddings = HuggingFaceEmbeddings(model_name="BAAI/bge-small-en-v1.5")
@@ -172,11 +172,11 @@ def load_vectorstore():
         st.error("⚠️ HR Policy PDFs or ZIP archive not found in repository!")
         st.stop()
 
-# Initialize Vector Store and Retriever properly
+# Initialize Vector Store and Retriever globally (Outside sidebar)
 vectorstore = load_vectorstore()
 retriever = vectorstore.as_retriever(search_type="mmr", search_kwargs={"k": 6, "fetch_k": 20})
 
-# Initialize Groq LLM
+# Initialize Groq LLM (Using 100% stable model)
 llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0)
 
 SYSTEM_PROMPT = """You are an HR policy assistant for Zyro Dynamics.
